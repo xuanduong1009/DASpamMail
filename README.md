@@ -1,102 +1,114 @@
-﻿# Enron Spam Filter (Do an 19)
+---
 
-This project builds a spam/ham email classifier using TF-IDF and ML models
-(Multinomial Naive Bayes and Linear SVM). The pipeline includes email parsing,
-text cleaning, vectorization, training, and evaluation.
+# 📧 Enron Spam Filter (Đồ án 19)
 
-Dataset layout (folder-based):
-- data/bilingual/ham and data/bilingual/spam (current combined EN + VI)
-- enron1/ham and enron1/spam (if you keep the original EN-only dataset)
+Dự án xây dựng hệ thống phân loại Email (Spam/Ham) sử dụng phương pháp **TF-IDF** kết hợp với các mô hình Machine Learning (**Multinomial Naive Bayes** và **Linear SVM**). Hệ thống hỗ trợ song ngữ Anh - Việt.
 
-## Full Setup (Windows PowerShell)
+---
 
-1) Create a virtual environment and install dependencies:
-   python -m venv .venv
-   .venv\Scripts\activate
-   pip install -r requirements.txt
+## 🛠 Tính năng chính
 
-2) Train models and save artifacts (choose dataset):
-   # EN + VI (current default)
-   python -m src.models.train --data-dir data\bilingual
+* **Pipeline hoàn chỉnh:** Từ xử lý thô, làm sạch văn bản, trích xuất đặc trưng đến huấn luyện và đánh giá.
+* **Hỗ trợ song ngữ:** Xử lý tốt dữ liệu Tiếng Anh và Tiếng Việt nhờ bộ stopword tùy chỉnh.
+* **Giao diện trực quan:** Tích hợp Demo qua Streamlit Web App.
+* **Tối ưu hóa:** Tự động chọn mô hình tốt nhất dựa trên chỉ số F1-score.
 
-   # EN only (if enron1 exists)
-   python -m src.models.train --data-dir enron1
+---
 
-3) Evaluate saved model on test split:
-   python -m src.models.evaluate --model models/best_model.joblib
+## 📂 Cấu trúc thư mục (Project Structure)
 
-4) Predict for a new email:
-   python -m src.models.predict --email-file path\to\email.txt
-   # or
-   python -m src.models.predict --text "free money now"
+```text
+├── data/
+│   ├── bilingual/          # Dữ liệu mẫu (Ham/Spam) Anh-Việt
+│   ├── stopwords_vi.txt    # Danh sách stopword Tiếng Việt
+│   ├── interim/            # Dữ liệu trung gian sau khi parse
+│   └── processed/          # Dữ liệu đã split (train/test)
+├── models/                 # Lưu trữ các file .joblib sau khi training
+├── reports/                # Kết quả đánh giá và biểu đồ metrics
+├── src/                    # Mã nguồn chính (Processing, Training, Predict)
+├── app.py                  # Giao diện Web Demo (Streamlit)
+└── requirements.txt        # Các thư viện cần thiết
 
-## Demo (Streamlit)
+```
 
-Run the web demo UI:
+---
 
-1) Make sure you have trained once (creates models/best_model.joblib)
-2) Start the app:
-   streamlit run app.py
+## 🚀 Hướng dẫn cài đặt & Chạy dự án
 
-## English + Vietnamese
+### 1. Thiết lập môi trường
 
-To support both languages, put Vietnamese spam/ham emails in the same folder
-structure (e.g., `data/bilingual/ham` and `data/bilingual/spam`), then retrain:
+Mở Windows PowerShell và chạy các lệnh sau:
 
-   python -m src.models.train --data-dir data\bilingual
+```powershell
+# Tạo môi trường ảo
+python -m venv .venv
 
-The vectorizer uses a combined English+Vietnamese stopword list configured in
-`src/config.py`. You can edit `data/stopwords_vi.txt` to adjust Vietnamese stopwords
-or disable them by setting `USE_VIETNAMESE_STOPWORDS = False`.
+# Kích hoạt môi trường
+.venv\Scripts\activate
 
-## Suggested Run Flow (what to run, in order)
+# Cài đặt thư viện
+pip install -r requirements.txt
 
-1) Setup env + install
-   - python -m venv .venv
-   - .venv\Scripts\activate
-   - pip install -r requirements.txt
+```
 
-2) Train (choose dataset)
-   - python -m src.models.train --data-dir data\bilingual
+### 2. Luồng thực thi (Workflow)
 
-3) Evaluate metrics
-   - python -m src.models.evaluate --model models/best_model.joblib
+Để hoàn thành một chu trình dự án, hãy thực hiện theo thứ tự:
 
-4) Demo
-   - streamlit run app.py
+1. **Huấn luyện mô hình (Train):**
+```powershell
+# Sử dụng tập dữ liệu song ngữ mặc định
+python -m src.models.train --data-dir data\bilingual
 
-## File/Folder Meaning (so reviewers know how to use)
+```
 
-- data/bilingual/ham, data/bilingual/spam
-  Bilingual dataset (EN + VI). Each file is one email.
-- data/processed/train.csv, data/processed/test.csv
-  Train/test splits created during training.
-- data/interim/emails_raw.csv
-  Parsed raw emails (text + label + path).
-- data/stopwords_vi.txt
-  Vietnamese stopwords used by TF-IDF (editable).
-- models/nb_best.joblib, models/svm_best.joblib
-  Best Naive Bayes and SVM models from training.
-- models/best_model.joblib
-  Best model chosen by F1 (used by demo and predict).
-- reports/results/metrics.csv
-  Baselines + NB + SVM metrics (precision/recall/F1 + params).
-- reports/results/eval_metrics.csv
-  Metrics for the selected best model.
-- app.py
-  Streamlit demo UI.
-- src/
-  Core pipeline code (load → preprocess → TF-IDF → train → eval).
 
-## Notes
+2. **Đánh giá (Evaluate):** Kiểm tra độ chính xác trên tập test.
+```powershell
+python -m src.models.evaluate --model models/best_model.joblib
 
-- If you update scikit-learn version, re-train to avoid version warnings.
-- The demo uses `data/bilingual` by default in `app.py`.
+```
 
-## Outputs
 
-- data/interim/emails_raw.csv
-- data/processed/train.csv and data/processed/test.csv
-- models/nb_best.joblib, models/svm_best.joblib, models/best_model.joblib
-- reports/results/metrics.csv
-- reports/results/eval_metrics.csv
+3. **Dự đoán nhanh (Predict):** Kiểm tra thử với 1 nội dung cụ thể.
+```powershell
+python -m src.models.predict --text "Chúc mừng! Bạn đã trúng thưởng 100 triệu đồng."
+
+```
+
+
+4. **Giao diện Web (Demo):**
+```powershell
+streamlit run app.py
+
+```
+
+
+
+---
+
+## 🇻🇳 Hỗ trợ Tiếng Việt
+
+Hệ thống sử dụng bộ lọc stopword tại `data/stopwords_vi.txt`.
+
+* Để điều chỉnh danh sách lọc: Sửa trực tiếp file `.txt`.
+* Để bật/tắt: Cấu hình biến `USE_VIETNAMESE_STOPWORDS` trong `src/config.py`.
+
+---
+
+## 📊 Kết quả đầu ra (Outputs)
+
+Sau khi chạy xong pipeline, các file sau sẽ được khởi tạo/cập nhật:
+
+* `models/best_model.joblib`: Mô hình tối ưu nhất dùng cho Production.
+* `reports/results/metrics.csv`: Bảng so sánh chi tiết hiệu năng giữa NB và SVM.
+* `data/processed/`: Các tập dữ liệu đã được chuẩn hóa.
+
+---
+
+## 📝 Lưu ý
+
+* Nếu bạn thay đổi phiên bản **scikit-learn**, hãy thực hiện huấn luyện lại mô hình để tránh lỗi tương thích.
+* Dữ liệu đầu vào cần được đặt đúng cấu trúc thư mục `ham/` và `spam/`.
+
+---
