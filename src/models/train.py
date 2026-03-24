@@ -5,28 +5,53 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
+try:
+    from xgboost import XGBClassifier
+except ImportError:
+    XGBClassifier = None
+
 from src.config import (
     DATASET_DIR,
+    EXPERIMENTS,
     INTERIM_DIR,
     KEYWORD_BASELINE,
+    LR_PARAM_GRID,
     MODELS_DIR,
     NB_PARAM_GRID,
     PROCESSED_DIR,
     RANDOM_STATE,
     RESULTS_DIR,
+    RF_PARAM_GRID,
     SVM_PARAM_GRID,
     TEST_SIZE,
     VECTORIZER_PARAMS,
+    XGB_PARAM_GRID,
 )
 from src.features.vectorize import build_vectorizer
 from src.models.evaluate import compute_metrics
 from src.utils.dataset import load_emails
 from src.utils.io import ensure_dir
+
+METRIC_COLUMNS = [
+    "model",
+    "precision_spam",
+    "recall_spam",
+    "f1_spam",
+    "accuracy",
+    "tn",
+    "fp",
+    "fn",
+    "tp",
+    "cv_best_f1",
+    "best_params",
+]
 
 
 def prepare_data(data_dir, dedup=False, limit=None):
@@ -64,6 +89,24 @@ def run_baselines(X_train, y_train, X_test, y_test):
     return results
 
 
+def run_search(clf, grid, vectorizer_params, X_train, y_train):
+    pipeline = Pipeline(
+        [
+            ("tfidf", build_vectorizer(vectorizer_params)),
+            ("clf", clf),
+        ]
+    )
+    search = GridSearchCV(
+        pipeline,
+        grid,
+        scoring="f1",
+        cv=3,
+        n_jobs=-1,
+    )
+    search.fit(X_train, y_train)
+    return search
+
+
 def train_model(
     model_name,
     X_train,
@@ -76,28 +119,71 @@ def train_model(
     if model_name == "nb":
         clf = MultinomialNB()
         grid = NB_PARAM_GRID if param_grid is None else param_grid
+
     elif model_name == "svm":
-        clf = LinearSVC()
         grid = SVM_PARAM_GRID if param_grid is None else param_grid
+        experiments = (
+            [{"name": "custom", "vectorizer": vectorizer_params}]
+            if vectorizer_params is not None
+            else EXPERIMENTS
+        )
+
+        best_search = None
+        best_experiment = None
+        for experiment in experiments:
+            search = run_search(
+                LinearSVC(),
+                grid,
+                experiment["vectorizer"],
+                X_train,
+                y_train,
+            )
+            if best_search is None or search.best_score_ > best_search.best_score_:
+                best_search = search
+                best_experiment = experiment["name"]
+
+        best = best_search.best_estimator_
+        y_pred = best.predict(X_test)
+
+        metrics = compute_metrics(y_test, y_pred)
+        metrics["model"] = model_name
+        metrics["best_params"] = json.dumps(
+            {
+                "experiment": best_experiment,
+                **best_search.best_params_,
+            }
+        )
+        metrics["cv_best_f1"] = float(best_search.best_score_)
+
+        return best, metrics
+
+    # Omotehinwa & Oyewola, Appl. Sci. 2023 — Random Forest + GridSearchCV
+    elif model_name == "rf":
+        clf = RandomForestClassifier(random_state=RANDOM_STATE, n_jobs=-1)
+        grid = RF_PARAM_GRID if param_grid is None else param_grid
+
+    # Si et al., arXiv:2402.15537 — Logistic Regression (TF-IDF benchmark)
+    elif model_name == "lr":
+        clf = LogisticRegression(random_state=RANDOM_STATE)
+        grid = LR_PARAM_GRID if param_grid is None else param_grid
+
+    # Mustapha et al., arXiv:2012.14430 — XGBoost
+    elif model_name == "xgb":
+        if XGBClassifier is None:
+            raise ImportError("xgboost is not installed in the current environment.")
+        clf = XGBClassifier(
+            random_state=RANDOM_STATE,
+            eval_metric="logloss",
+            use_label_encoder=False,
+            n_jobs=-1,
+        )
+        grid = XGB_PARAM_GRID if param_grid is None else param_grid
+
     else:
-        raise ValueError("Unknown model name")
+        raise ValueError(f"Unknown model name: {model_name}")
 
     params = VECTORIZER_PARAMS if vectorizer_params is None else vectorizer_params
-    pipeline = Pipeline(
-        [
-            ("tfidf", build_vectorizer(params)),
-            ("clf", clf),
-        ]
-    )
-
-    search = GridSearchCV(
-        pipeline,
-        grid,
-        scoring="f1",
-        cv=3,
-        n_jobs=-1,
-    )
-    search.fit(X_train, y_train)
+    search = run_search(clf, grid, params, X_train, y_train)
     best = search.best_estimator_
     y_pred = best.predict(X_test)
 
@@ -143,14 +229,39 @@ def main():
     results.extend(run_baselines(X_train, y_train, X_test, y_test))
 
     best_models = []
-    for name in ("nb", "svm"):
+    model_names = ["nb", "svm", "rf", "lr"]
+    if XGBClassifier is not None:
+        model_names.append("xgb")
+    else:
+        logging.warning("xgboost is not installed; skipping xgb benchmark.")
+
+    for name in model_names:
+        logging.info("Training model: %s", name)
         model, metrics = train_model(name, X_train, y_train, X_test, y_test)
         model_path = Path(args.out_model_dir) / f"{name}_best.joblib"
         joblib.dump(model, model_path)
         best_models.append((metrics["f1_spam"], model))
         results.append(metrics)
+        logging.info(
+            "%s → F1: %.4f | Acc: %.4f | best_params: %s",
+            name,
+            metrics["f1_spam"],
+            metrics["accuracy"],
+            metrics["best_params"],
+        )
 
     results_df = pd.DataFrame(results)
+    if not results_df.empty:
+        float_cols = results_df.select_dtypes(include="float").columns
+        results_df[float_cols] = results_df[float_cols].round(6)
+        results_df = results_df.sort_values(
+            ["f1_spam", "accuracy"],
+            ascending=[False, False],
+            kind="stable",
+        )
+        ordered_cols = [col for col in METRIC_COLUMNS if col in results_df.columns]
+        extra_cols = [col for col in results_df.columns if col not in ordered_cols]
+        results_df = results_df[ordered_cols + extra_cols]
     results_df.to_csv(args.out_metrics, index=False)
 
     best_models.sort(key=lambda x: x[0], reverse=True)

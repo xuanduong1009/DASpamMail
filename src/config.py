@@ -2,8 +2,8 @@
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-DATASET_DIR = PROJECT_ROOT / "enron1"
 DATA_DIR = PROJECT_ROOT / "data"
+DATASET_DIR = DATA_DIR / "bilingual"
 INTERIM_DIR = DATA_DIR / "interim"
 PROCESSED_DIR = DATA_DIR / "processed"
 
@@ -32,6 +32,30 @@ NB_PARAM_GRID = {
 
 SVM_PARAM_GRID = {
     "clf__C": [0.1, 1.0, 3.0, 10.0],
+}
+
+# --- Random Forest (Omotehinwa & Oyewola, Appl. Sci. 2023) ---
+RF_PARAM_GRID = {
+    "clf__n_estimators": [100, 200, 300],
+    "clf__max_depth": [None, 10, 20],
+    "clf__min_samples_split": [2, 5],
+    "clf__max_features": ["sqrt", "log2"],
+}
+
+# --- Logistic Regression (Si et al., arXiv 2402.15537) ---
+LR_PARAM_GRID = {
+    "clf__C": [0.1, 1.0, 10.0],
+    "clf__solver": ["lbfgs", "liblinear"],
+    "clf__max_iter": [1000],
+}
+
+# --- XGBoost (Mustapha et al., arXiv 2012.14430) ---
+XGB_PARAM_GRID = {
+    "clf__n_estimators": [100, 200],
+    "clf__max_depth": [3, 6],
+    "clf__learning_rate": [0.1, 0.3],
+    "clf__subsample": [0.8, 1.0],
+    "clf__colsample_bytree": [0.8, 1.0],
 }
 
 EXPERIMENTS = [

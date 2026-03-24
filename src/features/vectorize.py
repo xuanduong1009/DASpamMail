@@ -40,9 +40,11 @@ def build_vectorizer(params=None) -> TfidfVectorizer:
         stopwords = build_stopwords()
         if stopwords:
             cfg["stop_words"] = stopwords
-    return TfidfVectorizer(
-        preprocessor=clean_text,
-        lowercase=False,
-        token_pattern=r"(?u)\b\w+\b",
+    vectorizer_kwargs = {
+        "preprocessor": clean_text,
+        "lowercase": False,
         **cfg,
-    )
+    }
+    if analyzer == "word":
+        vectorizer_kwargs["token_pattern"] = r"(?u)\b\w+\b"
+    return TfidfVectorizer(**vectorizer_kwargs)

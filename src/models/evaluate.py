@@ -47,12 +47,15 @@ def main():
     y_pred = model.predict(X)
 
     metrics = compute_metrics(y_true, y_pred)
+    metrics["model"] = Path(args.model).stem
+    ordered = ["model", "precision_spam", "recall_spam", "f1_spam", "accuracy", "tn", "fp", "fn", "tp"]
+    metrics = {key: (round(value, 6) if isinstance(value, float) else value) for key, value in metrics.items()}
     print(json.dumps(metrics, indent=2))
 
     ensure_dir(Path(RESULTS_DIR))
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame([metrics]).to_csv(out_path, index=False)
+    pd.DataFrame([[metrics.get(col) for col in ordered]], columns=ordered).to_csv(out_path, index=False)
 
 
 if __name__ == "__main__":

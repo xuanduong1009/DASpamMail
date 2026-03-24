@@ -1,2 +1,2 @@
-precision_spam,recall_spam,f1_spam,accuracy,tn,fp,fn,tp
-0.98,0.98989898989899,0.9849246231155779,0.9912790697674418,729,6,3,294
+model,precision_spam,recall_spam,f1_spam,accuracy,tn,fp,fn,tp
+svm_best,0.976945,0.976945,0.976945,0.985953,784,8,8,339
