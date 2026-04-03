@@ -1,0 +1,2 @@
+model,precision_ham,recall_ham,f1_ham,support_ham,precision_spam,recall_spam,f1_spam,support_spam,macro_f1,weighted_f1,balanced_accuracy,specificity,npv,false_positive_rate,false_negative_rate,roc_auc,accuracy,tn,fp,fn,tp
+svm_best,0.989899,0.989899,0.989899,792,0.976945,0.976945,0.976945,347,0.983422,0.985953,0.983422,0.989899,0.989899,0.010101,0.023055,0.997919,0.985953,784,8,8,339

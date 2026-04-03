@@ -1,0 +1,53 @@
+(A) Câu có trong file (trích đúng từ dataset hiện tại)
+VI – Ham (trong mail_*.txt)
+mail_0001.txt → “Mai mình đi công tác, bạn hỗ trợ xử lý các email còn lại giúp mình.”
+mail_0002.txt → “Bạn xem giúp mình phần timeline trong tài liệu này nhé, cảm ơn.”
+mail_0003.txt → “Nhắc bạn hoàn thành form đăng ký trước 01/03/2026.”
+mail_0004.txt → “Mình gửi lại file báo cáo, bạn xem giúp và phản hồi trước 10/02/2026.”
+mail_0005.txt → “Mình đã cập nhật bản kế hoạch mới, bạn kiểm tra mục triển khai nhé.”
+mail_0006.txt → “Anh/chị cho em xin ý kiến về phương án mô hình trước 10/02/2026.”
+
+
+VI – Spam (trong mail_*.txt)
+mail_0001.txt → “Bạn đã trúng thưởng 500000 VNĐ! Nhấn vào http://example.com/verify để nhận ngay.”
+mail_0002.txt → “Tài khoản của bạn sẽ bị khóa trong 24 giờ. Xác minh tại https://promo.example.vn/deal”
+mail_0003.txt → “Cơ hội đầu tư lợi nhuận 10%/tháng, tham gia ngay tại https://promo.example.vn/deal”
+mail_0004.txt → “Cảnh báo bảo mật: phát hiện đăng nhập lạ. Đổi mật khẩu tại http://bit.ly/nhanqua”
+mail_0005.txt → “Mã OTP của bạn là 988502. Không chia sẻ mã này. (Lưu ý: nếu bạn không yêu cầu, hãy nhấn http://bit.ly/nhanqua)”
+mail_0006.txt → “Ưu đãi độc quyền: nhận 80% khi mua tai nghe. Click https://promo.example.vn/deal”
+
+EN – Ham (trong 000*.txt)
+0002.1999-12-13.farmer.ham.txt → “gary , production from the high island larger block a - 1 # 2 commenced on”
+0003.1999-12-14.farmer.ham.txt → “- calpine daily gas nomination 1 . doc”
+0004.1999-12-14.farmer.ham.txt → “fyi - see note below - already done .”
+0005.1999-12-14.farmer.ham.txt → “- - - - - - - - - - - - - - - - - - - - - - - - forwarded by lauri a allen / hou / ect on 12 / 14 / 99 12 : 17”
+0007.1999-12-14.farmer.ham.txt → “since the inlet to 3 river plant is shut in on 10 / 19 / 99 the last day of”
+0009.1999-12-14.farmer.ham.txt → “i need the following done :”
+
+EN – Spam (trong 000*.txt)
+0006.2003-12-18.GP.spam.txt → “human growth hormone - also called hgh”
+0008.2003-12-18.GP.spam.txt → “low cost prescription medications”
+0017.2003-12-18.GP.spam.txt → “people nowthe weather or climate in any particular environment can change and affect what people eat and how much of it they are able to eat .”
+0018.2003-12-18.GP.spam.txt → “we are a team of government officials that belong to an eight - man committee in the presidential cabinet as well as the senate .”
+0026.2003-12-18.GP.spam.txt → “indianapolis , in - race car simulators ? inks the sale of eight simulators for installation in moscow”
+0032.2003-12-19.GP.spam.txt → “to exit all additional mailings - - - >”
+
+
+
+(B) Câu tự chế (không có trong file)
+VI – Spam
+“Nhận quà iPhone miễn phí, click link để nhận ngay!”
+“Tài khoản của bạn sắp hết hạn, xác minh ngay để tránh khóa.”
+“Vay nóng trong ngày, không cần thế chấp, duyệt trong 5 phút.”
+VI – Ham
+“Mình gửi lịch họp tuần sau, bạn xem giúp.”
+“Nhớ nộp báo cáo trước 5 giờ chiều nhé.”
+“Có thể đổi lịch call sang sáng mai được không?”
+EN – Spam
+“Your account has been limited. Verify here to restore access.”
+“You are selected for a cash reward. Click to claim.”
+“Work from home and earn $500/day. Limited slots!”
+EN – Ham
+“Please review the updated contract and share feedback.”
+“Can we move the meeting to next Tuesday?”
+“I uploaded the slides to the shared drive.”
